@@ -55,7 +55,7 @@ public class SismoProcess {
     }
 
     public int getMag(Sismo s) {
-        return (int)(s.getMag()*0.01*((width>height)?height:width));
+        return (int)(s.getMag()*0.015*((width>height)?height:width));
     }
 
     int getWidth() {

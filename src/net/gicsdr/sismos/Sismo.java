@@ -4,7 +4,9 @@
  */
 package net.gicsdr.sismos;
 
+import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 
 /**
  *
@@ -16,6 +18,10 @@ public class Sismo {
     private float magnitude;
     private GregorianCalendar datetime;
     private boolean active;
+    private String description;
+    static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy, MMM, dd");
+                
+                
     
     private int ttl;
     
@@ -26,6 +32,7 @@ public class Sismo {
         this.datetime = datetime;
         ttl = SismoProcess.TTL_MAX;
         active = false;
+        description = sdf.format(datetime.getTime());
     }
     
     public int getX(int width, float leftLon, float rightLon){
@@ -43,6 +50,9 @@ public class Sismo {
     
     public float getMag() {
         return magnitude;
+    }
+    public String getDescription() {
+        return description;
     }
     
     public void activate() {
@@ -63,5 +73,10 @@ public class Sismo {
 
     public boolean isActive() {
         return active;
+    }
+
+    boolean isRecent() {
+        if (ttl == SismoProcess.TTL_MAX) return true;
+        return false;
     }
 }
