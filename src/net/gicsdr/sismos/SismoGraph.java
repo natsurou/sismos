@@ -5,6 +5,7 @@
 package net.gicsdr.sismos;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -17,12 +18,32 @@ public class SismoGraph extends JComponent {
     Image backgroundImage;
     SismoProcess sismoSource;
     private String displayName = "";
+    private String ano;
+    private String dia;
+    private String mes;
+    private Font anofont;
+    private Font mesfont;
+    private Font diafont;
+    private Color anocolor;
+    private Color mescolor;
+    private Color diacolor;
             
     public SismoGraph(SismoProcess sismoSource){
         super();
         this.sismoSource = sismoSource;
         circleFillColor = Color.BLACK;
         circleBorderColor = Color.WHITE;
+        this.ano = "";
+        this.dia = "";
+        this.mes = "";
+        // this.anofont = new Font("Courier", Font.BOLD | Font.ITALIC ,40);
+        this.anofont = new Font("Courier", Font.BOLD, 40);
+        this.mesfont = new Font("Courier", Font.BOLD, 40);
+        this.diafont = new Font("Courier", Font.BOLD, 40);              
+        this.anocolor = new Color(0,255,0,124);
+        this.mescolor = new Color(0,200,0,124);
+        this.diacolor = new Color(0,150,0,124);
+
     }
     
     public void setBackgroundImage(Image img) {
@@ -57,6 +78,16 @@ public class SismoGraph extends JComponent {
             }
         }
         g2.drawString(displayName, (int)(sismoSource.getWidth()*0.05), (int)(sismoSource.getHeight()*0.9));
+        // Pintar Año Mes Día
+        g2.setFont(this.anofont);        
+        g2.setColor(this.anocolor);        
+        g2.drawString(this.ano, (int)(sismoSource.getWidth()*0.03), (int)(sismoSource.getHeight()*0.07));
+        g2.setFont(this.mesfont);        
+        g2.setColor(this.mescolor);
+        g2.drawString(this.mes, (int)(sismoSource.getWidth()*0.03), (int)(sismoSource.getHeight()*0.13));
+        g2.setFont(this.diafont);
+        g2.setColor(this.diacolor);
+        g2.drawString(this.dia, (int)(sismoSource.getWidth()*0.16), (int)(sismoSource.getHeight()*0.13));
     }
     
     public void drawCircle(Graphics g, int x, int y, int z, float alpha) {
@@ -77,6 +108,18 @@ public class SismoGraph extends JComponent {
 
     void setDescription(String displayName) {
         this.displayName = displayName;
+    }
+
+    void setAno(String ano) {
+        this.ano = ano;
+    }
+
+    void setMes(String mes) {
+        this.mes = mes;
+    }
+
+    void setDia(String dia) {
+        this.dia = dia;
     }
 
 }

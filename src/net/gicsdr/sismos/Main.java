@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -125,7 +126,7 @@ public class Main{
      */
     public static void main(String[] args) {
         Main main = new Main();
-        main.loadSismos("sismos_map.txt");
+        main.loadSismos("sismos_2007.txt");
         main.sProcess.addSismo(new Sismo(-12.1f,-76.09f,8f,new GregorianCalendar(2012, 8, 28, 12, 24, 12)));
         main.sProcess.addSismo(new Sismo(-12.08f,-77.02f,3f,new GregorianCalendar(2012, 11, 28, 12, 24, 12)));
         main.sProcess.addSismo(new Sismo(-18.39f,-70.37f,10f,new GregorianCalendar(2012, 8, 28, 12, 24, 12)));
@@ -135,9 +136,9 @@ public class Main{
         
         main.sProcess.addSismo(new Sismo(-12.08f,-77.02f,3f,new GregorianCalendar(2012, 11, 28, 12, 24, 12)));
 
-        main.saveState("saved.png", "png");
+        main.sProcess.setFadeOut(false);
         
-        main.timeStamp(new GregorianCalendar(1973, 1, 1, 0, 0, 0), 14400, 0, 1, 0, 0);
+        main.timeStamp(new GregorianCalendar(2007, 1, 1, 0, 0, 0), 365, 0, 1, 0, 0);
         
     }
     
@@ -170,7 +171,17 @@ public class Main{
                 sGraph.setDescription(now.get(GregorianCalendar.YEAR)+", "+
                         now.getDisplayName(GregorianCalendar.MONTH, GregorianCalendar.SHORT, Locale.ENGLISH)+" "+
                         now.get(GregorianCalendar.DAY_OF_MONTH));
-                sGraph.paintAll(sGraph.getGraphics());
+                                               
+                SimpleDateFormat sdfAno = new SimpleDateFormat("yyyy");
+                SimpleDateFormat sdfMes = new SimpleDateFormat("MMM");
+                SimpleDateFormat sdfDia = new SimpleDateFormat("dd");
+                
+                sGraph.setAno(sdfAno.format(now.getTime()));
+                sGraph.setMes(sdfMes.format(now.getTime()).substring(0, 2).toUpperCase());
+                sGraph.setDia(sdfDia.format(now.getTime()));
+                
+                
+                sGraph.paintAll(sGraph.getGraphics());                
                 
                 saveState(String.format("img%05d.jpg", i+1), "jpg");
                 
