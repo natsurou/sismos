@@ -12,12 +12,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
+import javax.sound.midi.InvalidMidiDataException;
 import javax.swing.*;
 /**
  *
@@ -29,11 +31,12 @@ public class Main{
     final String MAP_IMAGE_PATH = "mapa.png";
     SismoProcess sProcess;
     SismoGraph sGraph;
+    SismoMidi sMidi;
     Thread updater;
     int width;
     int height;
     
-    public Main() {
+    public Main() throws InvalidMidiDataException {
         frame = new JFrame();        
         frame.setTitle(TITLE);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);        
@@ -64,6 +67,7 @@ public class Main{
         frame.add(sGraph);
         frame.setVisible(true);
         
+        sMidi = new SismoMidi(sProcess);        
     }
     
     public void saveState(String name, String format){
@@ -100,8 +104,8 @@ public class Main{
                             Float.parseFloat(values[4]),
                             new GregorianCalendar(
                             Integer.parseInt(values[0].substring(0, 4)),
-                            Integer.parseInt(values[0].substring(4, 6)),
-                            Integer.parseInt(values[0].substring(6, 8)),
+                            Integer.parseInt(values[0].substring(4, 6))-1,
+                            Integer.parseInt(values[0].substring(6, 8))-1,
                             Integer.parseInt(values[0].substring(8, 10)),
                             Integer.parseInt(values[0].substring(10, 12)),
                             Integer.parseInt(values[0].substring(12, 14))
@@ -117,27 +121,20 @@ public class Main{
     
     public void timeStamp(GregorianCalendar start, int steps, int months, int days, int hours, int minutes) {
         StamperThread stamperThread = new StamperThread(start,steps,months,days,hours,minutes);
+        stamperThread.setPriority(Thread.MAX_PRIORITY);
         stamperThread.start();
     }
     
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InvalidMidiDataException {
         Main main = new Main();
-        main.loadSismos("sismos_map.txt");
-        main.sProcess.addSismo(new Sismo(-12.1f,-76.09f,8f,new GregorianCalendar(2012, 8, 28, 12, 24, 12)));
-        main.sProcess.addSismo(new Sismo(-12.08f,-77.02f,3f,new GregorianCalendar(2012, 11, 28, 12, 24, 12)));
-        main.sProcess.addSismo(new Sismo(-18.39f,-70.37f,10f,new GregorianCalendar(2012, 8, 28, 12, 24, 12)));
-        main.sProcess.addSismo(new Sismo(-0.03f,-75.17f,10f,new GregorianCalendar(2012, 8, 28, 12, 24, 12)));
-        main.sProcess.addSismo(new Sismo(-4.67f,-81.32f,10f,new GregorianCalendar(2012, 8, 28, 12, 24, 12)));
-        main.sProcess.addSismo(new Sismo(-12.50f,-68.65f,10f,new GregorianCalendar(2012, 8, 28, 12, 24, 12)));
-        
-        main.sProcess.addSismo(new Sismo(-12.08f,-77.02f,3f,new GregorianCalendar(2012, 11, 28, 12, 24, 12)));
+        main.loadSismos("2012_complete.csv");
 
-        main.saveState("saved.png", "png");
+        main.sProcess.setFadeOut(true);
         
-        main.timeStamp(new GregorianCalendar(1973, 1, 1, 0, 0, 0), 14400, 0, 1, 0, 0);
+        main.timeStamp(new GregorianCalendar(2012, 0, 6, 0, 0, 0), 360*4, 0, 0, 6, 0);
         
     }
     
@@ -160,7 +157,8 @@ public class Main{
     
         @Override
         public void run() {
-            for (int i = 0; i < steps; i++) {
+            int i;
+            for (i = 0; i < steps; i++) {
                 sProcess.takeStep(now);
                 System.out.println(now.get(GregorianCalendar.YEAR)+" "+now.getDisplayName(GregorianCalendar.MONTH, GregorianCalendar.SHORT, Locale.JAPANESE));
                 now.add(GregorianCalendar.MONTH, months);
@@ -170,11 +168,37 @@ public class Main{
                 sGraph.setDescription(now.get(GregorianCalendar.YEAR)+", "+
                         now.getDisplayName(GregorianCalendar.MONTH, GregorianCalendar.SHORT, Locale.ENGLISH)+" "+
                         now.get(GregorianCalendar.DAY_OF_MONTH));
-                sGraph.paintAll(sGraph.getGraphics());
+                                               
+                SimpleDateFormat sdfAno = new SimpleDateFormat("yyyy");
+                SimpleDateFormat sdfMes = new SimpleDateFormat("MMM", new Locale("es"));
+                SimpleDateFormat sdfDia = new SimpleDateFormat("dd");
+                
+                sGraph.setAno(sdfAno.format(now.getTime()));
+                sGraph.setMes(sdfMes.format(now.getTime()).substring(0, 2).toUpperCase());
+                sGraph.setDia(sdfDia.format(now.getTime()));
+                
+                sGraph.paintAll(sGraph.getGraphics());         
                 
                 saveState(String.format("img%05d.jpg", i+1), "jpg");
-                
-            }
+                /*
+                for (int j = 0; j < sProcess.getSismos().size(); j++) {
+                    Sismo sismo = sProcess.getSismos().get(j);
+                    if(sismo.isRecent()) {
+                        try {
+                            sMidi.addNote(i, SismoProcess.TTL_MAX, 0x3C+(int)(sismo.getMag()*5));
+                        } catch (InvalidMidiDataException ex) {
+                            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } */
+            }/*
+            try {
+                sMidi.endAndWrite(i+SismoProcess.TTL_MAX, "midi.mid");
+            } catch (InvalidMidiDataException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }*/
         }
     }
 }

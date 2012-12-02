@@ -16,6 +16,7 @@ public class SismoProcess {
     static final int TTL_MAX = 30;
     private int width;
     private int height;
+    private boolean fadeOut;
     float leftLon;
     float rightLon;
     float topLat;
@@ -28,6 +29,7 @@ public class SismoProcess {
         this.rightLon = rightLon;
         this.topLat = topLat;
         this.bottomLat = bottomLat;
+        fadeOut = true;
         sismos = new LinkedList<>();
     }
     
@@ -39,6 +41,10 @@ public class SismoProcess {
         return this.sismos;
     } 
     
+    public void setFadeOut(boolean activated) {
+        fadeOut = activated;
+    }
+    
     public int getX(Sismo s){
         //TO DO: Correct for extreme longitudes (e.g. 179 and -175)
         return s.getX(width, leftLon, rightLon);
@@ -49,7 +55,7 @@ public class SismoProcess {
     }
 
     public int getMag(Sismo s) {
-        return (int)(s.getMag()*0.01*((width>height)?height:width));
+        return (int)(s.getMag()*0.015*((width>height)?height:width));
     }
 
     int getWidth() {
@@ -65,9 +71,11 @@ public class SismoProcess {
             if(s.getDateTime().before(time)) {
                 s.activate();
             }
-            if(s.isActive()) {
-                if(s.restLife()==false) {
-                    sismos.remove(s);
+            if(fadeOut) {
+                if(s.isActive()) {
+                    if(s.restLife()==false) {
+                        sismos.remove(s);
+                    }
                 }
             }
         }
